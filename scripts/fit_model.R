@@ -44,4 +44,6 @@ fits <- lapply(1999:2020,function(y){
               control = list(adapt_delta = 0.99),pars = c("score_mean"),include = FALSE)
   fit
 })
+
+if(!dir.exists("output")) dir.create("output")
 save(team_vars,fits,file = "output/team_effects_default_priors.Rdata")
