@@ -15,10 +15,13 @@ library(broom)
 library(rstan)
 
 options(dplyr.summarise.inform = FALSE)
+```
+
+```{r load_data,message=FALSE}
 
 # downloaded from https://www.kaggle.com/tobycrabtree/nfl-scores-and-betting-data
 scores <- read_csv("data/spreadspoke_scores.csv") 
-teams <- read_csv("nfl_teams.csv")
+teams <- read_csv("data/nfl_teams.csv")
 
 teams32 <- teams %>% 
   filter(!is.na(team_division),!str_detect(team_name,"Diego|skins")) %>% 
@@ -186,7 +189,7 @@ And here we have the final result! Set the variables $x_{1} = 1$ for the interce
 
 ## Home-Field Advantage by Team
 
-Finally, I'll look at home-field advantage by team. I'll just do this for the points model because the aforementioned issues with 16-0 and 0-16 seasons get even more common when a home undefeated or win-less season comes up. The extension to the model is simple, I just add a sub script: $Y_{hag} \sim N(\alpha_h + \mu_h - \mu_a,\sigma^2)$. Now I've written $\alpha_h$ not $\alpha_0$ to note that the home-field advantage is home team specific. Estimating this parameter is, however, a bit trickier. In the last model, $\alpha_0$ was informed directly by all 256 games in a season. Each $\alpha_h$ is informed by only 8. We can use a similar implementation as above to get a best-guess of each parameter (the maximum likelihood estimate), but those estimates will be quite noisy. Consequently, I will put my Bayesian hat back on and use a hierarchical model for the home team advantage terms: $\alpha_h \sim N(\alpha_0,\sigma_\alpha^2)$. I assume that the $\alpha_h$ terms all are drawn from a common distribution. This shrinks the estimates each season towards the "typical" home-field advantage and gives some slight regularization so we done make too extreme estimates given limited data. The model is implemented in stan, and you can find the code over on my GitHub page here (XXX).
+Finally, I'll look at home-field advantage by team. I'll just do this for the points model because the aforementioned issues with 16-0 and 0-16 seasons get even more common when a home undefeated or win-less season comes up. The extension to the model is simple, I just add a sub script: $Y_{hag} \sim N(\alpha_h + \mu_h - \mu_a,\sigma^2)$. Now I've written $\alpha_h$ not $\alpha_0$ to note that the home-field advantage is home team specific. Estimating this parameter is, however, a bit trickier. In the last model, $\alpha_0$ was informed directly by all 256 games in a season. Each $\alpha_h$ is informed by only 8. We can use a similar implementation as above to get a best-guess of each parameter (the maximum likelihood estimate), but those estimates will be quite noisy. Consequently, I will put my Bayesian hat back on and use a hierarchical model for the home team advantage terms: $\alpha_h \sim N(\alpha_0,\sigma_\alpha^2)$. I assume that the $\alpha_h$ terms all are drawn from a common distribution. This shrinks the estimates each season towards the "typical" home-field advantage and gives some slight regularization so we done make too extreme estimates given limited data. The model is implemented in stan, and you can find the code over on my [GitHub page here](https://github.com/g-tierney/NFL_HFA).
 
 From the model, I recover posterior beliefs about $\alpha_0$, the home-field advantage of a typical team in each season, and each $\alpha_h$, the home-field advantage for team $h$ in a season. Another important (and new) variable is $\sigma_{\alpha}$. This is the standard deviation of home-field advantage across teams in a given season. Standard deviations are easy to interpret uncertainty measures: about 50\% of the actual $\alpha_h$ values will be in the interval $\alpha_0\pm\sigma_\alpha$ and nearly all of the values will be within $\alpha_0\pm 2\sigma_\alpha$ (about 1 or 2 $\alpha_h$ values will fall outside of that interval each season). The figure below shows those results.
 
