@@ -1,0 +1,7 @@
+.DS_Store
+
+.Rproj.user/*
+*.html
+output/*
+home_field_cache/*
+home_field_files/*
